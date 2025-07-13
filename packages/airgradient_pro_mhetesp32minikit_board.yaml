@@ -1,0 +1,44 @@
+# For use with MH ET LIVE ESP32MiniKit (ESP32 pin-compatible with D1 Mini)
+# See also:
+# - https://doc.riot-os.org/group__boards__esp32__mh-et-live-minikit.html#esp32_mh_et_live_minikit_pinout
+# - https://docs.platformio.org/en/latest/boards/espressif32/mhetesp32minikit.html
+
+substitutions:
+  config_version: 5.3.0
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  name_add_mac_suffix: ${name_add_mac_suffix}  # Set to false if you don't want part of the MAC address in the name
+
+  project:
+    name: mallocarray.airgradient
+    version: "$config_version"
+  min_version: 2025.5.0
+
+esp32:
+  board: mhetesp32minikit
+  framework:
+    type: esp-idf
+
+# Enable logging
+# https://esphome.io/components/logger.html
+logger:
+
+uart:
+  # https://esphome.io/components/uart.html#uart
+  - rx_pin: GPIO16  # D4 on D1mini
+    tx_pin: GPIO17  # D3 on D1mini
+    baud_rate: 9600
+    id: senseair_co2_uart
+
+  - rx_pin: GPIO18  # D5 on D1mini
+    tx_pin: GPIO19  # D6 on D1mini
+    baud_rate: 9600
+    id: pms5003_uart
+
+i2c:
+  # https://esphome.io/components/i2c.html
+  sda: GPIO21 # D2 on D1mini
+  scl: GPIO22 # D1 on D1mini
+  frequency: 400kHz  # 400kHz eliminates warnings about components taking a long time other than SGP40 component: https://github.com/esphome/issues/issues/4717
