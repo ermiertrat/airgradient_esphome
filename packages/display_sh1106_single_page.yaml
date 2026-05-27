@@ -38,7 +38,7 @@ display:
         # https://forum.airgradient.com/t/airgradient-one-customized-mallocarray-esphome-display/1328
         lambda: |-
           if (id(display_in_f).state) {
-            it.printf(0, 0, id(open_sans_14), "%.1f°F", id(temp).state*9/5+32);
+            it.printf(0, 0, id(open_sans_14), "%.1f°F", id(temp).state*9.0/5.0+32);
           } else {
             it.printf(0, 0, id(open_sans_14), "%.1f°C", id(temp).state);
           }
