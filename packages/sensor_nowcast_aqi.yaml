@@ -36,7 +36,7 @@ text_sensor:
 
 sensor:
   - platform: template
-    id: aqi
+    id: aqi_epa_outdoor
     name: "AQI"
     device_class: aqi
     icon: "mdi:weather-windy-variant"
