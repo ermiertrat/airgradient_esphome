@@ -360,7 +360,7 @@ script:
   - id: calculate_categories
     then:
       - lambda: |
-          float aqi_calc = id(aqi).state;
+          float aqi_calc = id(aqi_epa_outdoor).state;
           if (isnan(aqi_calc) || aqi_calc < 0.0) {
             // if (id(aqi_category).state != "Calculating") {
             //   id(aqi_category).publish_state("Calculating");
