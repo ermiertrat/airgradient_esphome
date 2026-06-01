@@ -1,5 +1,5 @@
 substitutions:
-  config_version: 5.3.5
+  config_version: 5.3.6
   pm_2_5_scaling_factor: '1'
   pm_2_5_intercept: '0'
   co2_offset: '0'
@@ -14,7 +14,7 @@ esphome:
   name_add_mac_suffix: false
   project:
     name: mallocarray.airgradient
-    version: 5.3.5
+    version: 5.3.6
   min_version: 2025.5.0
   on_boot:
     - priority: 200.0
