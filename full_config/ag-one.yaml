@@ -1,5 +1,5 @@
 substitutions:
-  config_version: 5.3.0
+  config_version: 5.3.6
   pm_2_5_scaling_factor: '1'
   pm_2_5_intercept: '0'
   co2_offset: '0'
@@ -18,7 +18,7 @@ esphome:
   name_add_mac_suffix: false
   project:
     name: mallocarray.airgradient
-    version: 5.3.0
+    version: 5.3.6
   min_version: 2025.5.0
   on_boot:
     - priority: 200.0
@@ -40,27 +40,59 @@ esphome:
                   max_response_buffer_size: 1000
                   method: POST
   build_path: build/ag-one
-  area: ''
   platformio_options: {}
+  environment_variables: {}
   includes: []
+  includes_c: []
   libraries: []
   debug_scheduler: false
+  areas: []
+  devices: []
 esp32:
   board: esp32-c3-devkitm-1
   framework:
-    version: 5.3.2
+    type: esp-idf
+    version: 5.5.4
     sdkconfig_options: {}
+    log_level: ERROR
     advanced:
       compiler_optimization: SIZE
+      enable_idf_experimental_features: false
       enable_lwip_assert: true
       ignore_efuse_custom_mac: false
+      ignore_efuse_mac_crc: false
+      sram1_as_iram: false
       enable_lwip_mdns_queries: true
       enable_lwip_bridge_interface: false
+      enable_lwip_tcpip_core_locking: true
+      enable_lwip_check_thread_safety: true
+      disable_libc_locks_in_iram: true
+      disable_vfs_support_termios: true
+      disable_vfs_support_select: true
+      disable_vfs_support_dir: true
+      freertos_in_iram: false
+      ringbuf_in_iram: false
+      heap_in_iram: false
+      execute_from_psram: false
+      loop_task_stack_size: 8192
+      enable_ota_rollback: true
+      use_full_certificate_bundle: false
+      include_builtin_idf_components: []
+      enable_full_printf: false
+      disable_debug_stubs: true
+      disable_ocd_aware: true
+      disable_usb_serial_jtag_secondary: true
+      disable_dev_null_vfs: true
+      disable_mbedtls_peer_cert: true
+      disable_mbedtls_pkcs7: true
+      disable_regi2c_in_iram: true
+      adc_oneshot_in_iram: false
+      disable_fatfs: true
     components: []
-    platform_version: https://github.com/pioarduino/platform-espressif32/releases/download/53.03.13/platform-espressif32.zip
-    source: pioarduino/framework-espidf@https://github.com/pioarduino/esp-idf/releases/download/v5.3.2/esp-idf-v5.3.2.zip
-    type: esp-idf
+    platform_version: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.38-1/platform-espressif32.zip
+    source: pioarduino/framework-espidf@https://github.com/pioarduino/esp-idf/releases/download/v5.5.4/esp-idf-v5.5.4.tar.xz
   flash_size: 4MB
+  watchdog_timeout: 5s
   variant: ESP32C3
   cpu_frequency: 160MHZ
 logger:
@@ -71,6 +103,7 @@ logger:
   hardware_uart: USB_SERIAL_JTAG
   level: DEBUG
   logs: {}
+  runtime_tag_levels: false
 uart:
   - rx_pin:
       number: 0
@@ -99,6 +132,7 @@ uart:
     baud_rate: 9600
     id: senseair_co2_uart
     rx_buffer_size: 256
+    rx_timeout: 2
     stop_bits: 1
     data_bits: 8
     parity: NONE
@@ -129,6 +163,7 @@ uart:
     baud_rate: 9600
     id: pms5003_uart
     rx_buffer_size: 256
+    rx_timeout: 2
     stop_bits: 1
     data_bits: 8
     parity: NONE
@@ -141,7 +176,8 @@ i2c:
     scan: true
 wifi:
   ap:
-    ap_timeout: 1min
+    ap_timeout: 90s
+  min_auth_mode: WPA2
   domain: .local
   reboot_timeout: 15min
   power_save_mode: LIGHT
@@ -150,8 +186,10 @@ wifi:
   enable_rrm: false
   passive_scan: false
   enable_on_boot: true
+  post_connect_roaming: true
   use_address: ag-one.local
-captive_portal: {}
+captive_portal:
+  compression: gzip
 sensor:
   - platform: pmsx003
     type: PMSX003
@@ -227,11 +265,11 @@ sensor:
       } else if (pm_2_5_calibrated < 30.0) {
         result = (0.524 * pm_2_5_calibrated) - (0.0862 * id(humidity_raw).state) + 5.75;
       } else if (pm_2_5_calibrated < 50.0) {
-        result = (0.786 * (pm_2_5_calibrated / 20 - 3/2) + 0.524 * (1 - (pm_2_5_calibrated / 20 - 3/2))) * pm_2_5_calibrated - (0.0862 * id(humidity_raw).state) + 5.75;
+        result = (0.786 * (pm_2_5_calibrated / 20 - 3.0/2.0) + 0.524 * (1 - (pm_2_5_calibrated / 20 - 3.0/2.0))) * pm_2_5_calibrated - (0.0862 * id(humidity_raw).state) + 5.75;
       } else if (pm_2_5_calibrated < 210.0) {
         result = (0.786 * pm_2_5_calibrated) - (0.0862 * id(humidity_raw).state) + 5.75;
       } else if (pm_2_5_calibrated < 260.0) {
-        result = (0.69 * (pm_2_5_calibrated / 50 - 21/5) + 0.786 * (1 - (pm_2_5_calibrated / 50 - 21/5))) * pm_2_5_calibrated - (0.0862 * id(humidity_raw).state * (1 - (pm_2_5_calibrated / 50 - 21/5))) + (2.966 * (pm_2_5_calibrated / 50 - 21/5)) + (5.75 * (1 - (pm_2_5_calibrated / 50 - 21/5))) + (8.84 * pow(10,-4) * pow(pm_2_5_calibrated,2) * (pm_2_5_calibrated / 50 - 21/5));
+        result = (0.69 * (pm_2_5_calibrated / 50 - 21.0/5.0) + 0.786 * (1 - (pm_2_5_calibrated / 50 - 21.0/5.0))) * pm_2_5_calibrated - (0.0862 * id(humidity_raw).state * (1 - (pm_2_5_calibrated / 50 - 21.0/5.0))) + (2.966 * (pm_2_5_calibrated / 50 - 21.0/5.0)) + (5.75 * (1 - (pm_2_5_calibrated / 50 - 21.0/5.0))) + (8.84 * pow(10,-4) * pow(pm_2_5_calibrated,2) * (pm_2_5_calibrated / 50 - 21.0/5.0));
       } else {
         result = 2.966 + (0.69 * pm_2_5_calibrated) + (8.84 * pow(10,-4) * pow(pm_2_5_calibrated,2));
       }
@@ -242,42 +280,17 @@ sensor:
       }
     disabled_by_default: false
     force_update: false
-  - platform: template
+  - platform: aqi
     name: PM 2.5 AQI
     id: pm_2_5_aqi
-    update_interval: 5min
-    device_class: aqi
-    icon: mdi:air-filter
-    accuracy_decimals: 0
-    filters:
-      - skip_initial: 1
-    lambda: !lambda |-
-      // 2024 update from EPA https://www.epa.gov/system/files/documents/2024-02/pm-naaqs-air-quality-index-fact-sheet.pdf
-      // https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI
-      // Borrowed from https://github.com/kylemanna/sniffer/blob/master/esphome/sniffer_common.yaml
-      if (id(pm_2_5).state <= 9.0) {
-      // good
-      return((50.0 - 0.0) / (9.0 - 0.0) * (id(pm_2_5).state - 0.0) + 0.0);
-      } else if (id(pm_2_5).state <= 35.4) {
-      // moderate
-      return((100.0 - 51.0) / (35.4 - 9.1) * (id(pm_2_5).state - 9.1) + 51.0);
-      } else if (id(pm_2_5).state <= 55.4) {
-      // usg
-      return((150.0 - 101.0) / (55.4 - 35.5) * (id(pm_2_5).state - 35.5) + 101.0);
-      } else if (id(pm_2_5).state <= 125.4) {
-      // unhealthy
-      return((200.0 - 151.0) / (125.4 - 55.5) * (id(pm_2_5).state - 55.5) + 151.0);
-      } else if (id(pm_2_5).state <= 225.4) {
-      // very unhealthy
-      return((300.0 - 201.0) / (225.4 - 125.5) * (id(pm_2_5).state - 125.5) + 201.0);
-      } else if (id(pm_2_5).state <= 325.4) {
-      // hazardous
-      return((500.0 - 301.0) / (325.4 - 225.5) * (id(pm_2_5).state - 225.5) + 301.0);
-      } else {
-      return(500);
-      }
+    pm_2_5: pm_2_5
+    pm_10_0: pm_10_0
+    calculation_type: AQI
     disabled_by_default: false
     force_update: false
+    accuracy_decimals: 0
+    device_class: aqi
+    state_class: measurement
   - platform: senseair
     co2:
       name: CO2
@@ -359,14 +372,13 @@ sensor:
       force_update: false
       icon: mdi:radiator
       accuracy_decimals: 0
-      device_class: aqi
       state_class: measurement
     nox:
       name: NOx Index
       id: nox
       algorithm_tuning:
         learning_time_offset_hours: 12
-        index_offset: 100
+        index_offset: 1
         learning_time_gain_hours: 12
         gating_max_duration_minutes: 720
         std_initial: 50
@@ -375,7 +387,6 @@ sensor:
       force_update: false
       icon: mdi:radiator
       accuracy_decimals: 0
-      device_class: aqi
       state_class: measurement
     compensation:
       temperature_source: temp
@@ -492,7 +503,7 @@ switch:
     disabled_by_default: false
     assumed_state: false
   - platform: template
-    name: Display Temp/Hum Page
+    name: Display Temp-Hum Page
     id: display_air_temp_page
     restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
@@ -542,10 +553,20 @@ switch:
               id: oled_display
     on_turn_off:
       - then:
-          - display.page.show_next:
-              id: oled_display
-          - component.update:
-              id: oled_display
+          - if:
+              condition:
+                binary_sensor.is_on:
+                  id: any_non_blank_page_enabled
+              then:
+                - display.page.show_next:
+                    id: oled_display
+                - component.update:
+                    id: oled_display
+              else:
+                - display.page.show:
+                    id: blank
+                - component.update:
+                    id: oled_display
     disabled_by_default: false
     assumed_state: false
   - platform: template
@@ -613,6 +634,74 @@ font:
     ignore_missing_glyphs: false
     bpp: 1
     extras: []
+binary_sensor:
+  - platform: template
+    id: any_non_blank_page_enabled
+    internal: true
+    lambda: !lambda |-
+      return id(display_ag_default_page).state
+          || id(display_boot_page).state
+          || id(display_summary_pages).state
+          || id(display_huge_no_units_page).state
+          || id(display_air_quality_page).state
+          || id(display_air_temp_page).state
+          || id(display_voc_page).state
+          || id(display_combo_page).state;
+    disabled_by_default: false
+    name: any_non_blank_page_enabled
+  - platform: gpio
+    pin:
+      number: 9
+      mode:
+        input: true
+        pullup: true
+        output: false
+        open_drain: false
+        pulldown: false
+      inverted: true
+      ignore_strapping_warning: true
+      ignore_pin_validation_error: false
+      drive_strength: 20.0
+    internal: true
+    name: Configuration Button
+    id: config_button
+    on_multi_click:
+      - timing:
+          - state: true
+            min_length: 0ms
+            max_length: 1s
+          - state: false
+            min_length: 500ms
+        then:
+          - logger.log:
+              format: Toggling display between C and F
+              args: []
+              level: DEBUG
+              tag: main
+          - switch.toggle:
+              id: display_in_f
+        invalid_cooldown: 1s
+      - timing:
+          - state: true
+            min_length: 1s
+            max_length: 5s
+          - state: false
+            min_length: 500ms
+        then:
+          - logger.log:
+              format: Starting manual CO2 calibration
+              args: []
+              level: DEBUG
+              tag: main
+          - senseair.background_calibration:
+              id: senseair_co2
+          - delay: 70s
+          - senseair.background_calibration_result:
+              id: senseair_co2
+        invalid_cooldown: 1s
+    disabled_by_default: false
+    use_interrupt: true
+    interrupt_type: ANY
 display:
   - platform: ssd1306_i2c
     model: SH1106_128X64
@@ -622,7 +711,7 @@ display:
       - id: airgradient_default
         lambda: !lambda |-
           if (id(display_in_f).state) {
-            it.printf(0, 0, id(open_sans_14), "%.1f°F", id(temp).state*9/5+32);
+            it.printf(0, 0, id(open_sans_14), "%.1f°F", id(temp).state*9.0/5.0+32.0);
           } else {
             it.printf(0, 0, id(open_sans_14), "%.1f°C", id(temp).state);
           }
@@ -644,7 +733,7 @@ display:
         lambda: !lambda |-
           it.printf(0, 0, id(open_sans_14), "ID:");
           it.printf(128, 0, id(open_sans_14), TextAlign::TOP_RIGHT, "%s", get_mac_address().c_str());
-          it.printf(0, 21, id(open_sans_14), "Config Ver: 5.3.0");
+          it.printf(0, 21, id(open_sans_14), "Config Ver: 5.3.6");
           it.printf(0, 42, id(open_sans_14), "AG One");
       - id: summary1
         lambda: !lambda |-
@@ -654,7 +743,7 @@ display:
           it.printf(128, 16, id(open_sans_14), TextAlign::TOP_RIGHT, "%.0f µg/m³", id(pm_2_5).state);
           it.printf(0, 32, id(open_sans_14), "Temp:");
           if (id(display_in_f).state) {
-            it.printf(128, 32, id(open_sans_14), TextAlign::TOP_RIGHT, "%.1f°F", id(temp).state*9/5+32);
+            it.printf(128, 32, id(open_sans_14), TextAlign::TOP_RIGHT, "%.1f°F", id(temp).state*9.0/5.0+32.0);
           } else {
             it.printf(128, 32, id(open_sans_14), TextAlign::TOP_RIGHT, "%.1f°C", id(temp).state);
           }
@@ -676,7 +765,7 @@ display:
           it.printf(it.get_width(), 0 - 8, id(open_sans_34), TextAlign::TOP_RIGHT, "%.0f", id(humidity).state);
           it.printf(0, 64 + 8, id(open_sans_34), TextAlign::BOTTOM_LEFT, "%.0f", id(pm_2_5).state);
           if (id(display_in_f).state) {
-            it.printf(it.get_width(), 64 + 8, id(open_sans_34), TextAlign::BOTTOM_RIGHT, "%.1f", id(temp).state*9/5+32);
+            it.printf(it.get_width(), 64 + 8, id(open_sans_34), TextAlign::BOTTOM_RIGHT, "%.1f", id(temp).state*9.0/5.0+32.0);
           } else {
             it.printf(it.get_width(), 64 + 8, id(open_sans_34), TextAlign::BOTTOM_RIGHT, "%.1f", id(temp).state);
           }
@@ -690,7 +779,7 @@ display:
         lambda: !lambda |-
           it.printf(0, 13, id(open_sans_14), "Temp");
           if (id(display_in_f).state) {
-            it.printf(128, 6, id(open_sans_20), TextAlign::TOP_RIGHT, "%.1f°F", id(temp).state*9/5+32);
+            it.printf(128, 6, id(open_sans_20), TextAlign::TOP_RIGHT, "%.1f°F", id(temp).state*9.0/5.0+32.0);
           } else {
             it.printf(128, 6, id(open_sans_20), TextAlign::TOP_RIGHT, "%.1f°C", id(temp).state);
           }
@@ -705,7 +794,7 @@ display:
       - id: combo
         lambda: !lambda |-
           if (id(display_in_f).state) {
-            it.printf(0, 0, id(open_sans_14), "%.1f °F", id(temp).state*9/5+32);
+            it.printf(0, 0, id(open_sans_14), "%.1f °F", id(temp).state*9.0/5.0+32.0);
           } else {
             it.printf(0, 0, id(open_sans_14), "%.1f °C", id(temp).state);
           }
@@ -822,8 +911,8 @@ display:
         then:
           - if:
               condition:
-                switch.is_off:
-                  id: display_blank_page
+                binary_sensor.is_on:
+                  id: any_non_blank_page_enabled
               then:
                 - display.page.show_next:
                     id: oled_display
@@ -853,16 +942,19 @@ interval:
     then:
       - if:
           condition:
-            switch.is_on:
-              id: display_blank_page
+            and:
+              - switch.is_off:
+                  id: display_blank_page
+              - binary_sensor.is_on:
+                  id: any_non_blank_page_enabled
           then:
-            - display.page.show:
-                id: blank
+            - display.page.show_next:
+                id: oled_display
             - component.update:
                 id: oled_display
           else:
-            - display.page.show_next:
-                id: oled_display
+            - display.page.show:
+                id: blank
             - component.update:
                 id: oled_display
     startup_delay: 0s
@@ -1068,7 +1160,18 @@ number:
 light:
   - platform: esp32_rmt_led_strip
     rgb_order: GRB
-    pin: 10
+    pin:
+      number: 10
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
     num_leds: 11
     chipset: WS2812
     name: LED Strip
@@ -1087,7 +1190,7 @@ light:
 http_request:
   verify_ssl: false
   watchdog_timeout: 30s
-  useragent: ESPHome/2025.6.2 (https://esphome.io)
+  useragent: ESPHome/2026.5.1 (https://esphome.io)
   follow_redirects: true
   redirect_limit: 3
   timeout: 4500ms
@@ -1108,67 +1211,22 @@ output:
       inverted: false
       ignore_pin_validation_error: false
       drive_strength: 20.0
-binary_sensor:
-  - platform: gpio
-    pin:
-      number: 9
-      mode:
-        input: true
-        pullup: true
-        output: false
-        open_drain: false
-        pulldown: false
-      inverted: true
-      ignore_strapping_warning: true
-      ignore_pin_validation_error: false
-      drive_strength: 20.0
-    internal: true
-    name: Configuration Button
-    id: config_button
-    on_multi_click:
-      - timing:
-          - state: true
-            min_length: 0ms
-            max_length: 1s
-          - state: false
-            min_length: 500ms
-        then:
-          - logger.log:
-              format: Toggling display between C and F
-              tag: main
-              args: []
-              level: DEBUG
-          - switch.toggle:
-              id: display_in_f
-        invalid_cooldown: 1s
-      - timing:
-          - state: true
-            min_length: 1s
-            max_length: 5s
-          - state: false
-            min_length: 500ms
-        then:
-          - logger.log:
-              format: Starting manual CO2 calibration
-              tag: main
-              args: []
-              level: DEBUG
-          - senseair.background_calibration:
-              id: senseair_co2
-          - delay: 70s
-          - senseair.background_calibration_result:
-              id: senseair_co2
-        invalid_cooldown: 1s
-    disabled_by_default: false
 api:
   port: 6053
-  password: \033[5m''\033[6m
   reboot_timeout: 15min
   batch_delay: 100ms
+  custom_services: false
+  homeassistant_services: false
+  homeassistant_states: false
+  listen_backlog: 4
+  max_connections: 5
+  max_send_queue: 8
 ota:
+  - platform: web_server
   - platform: esphome
     version: 2
     port: 3232
+    allow_partition_access: false
 dashboard_import:
   package_import_url: github://MallocArray/airgradient_esphome/airgradient-one.yaml
   import_full_config: false
